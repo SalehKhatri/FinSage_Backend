@@ -57,7 +57,7 @@ async function handleRemaningBudget(req,res){
 
       // Find transactions for the same user and category
       const transactions = await Transaction.find({ user: userId, category,date: { $gte: createdAt } });
-
+      if(!transactions) return res.status(201).json({category,remainingAmount:amount, originalAmount:amount})
       // Calculate total expenses for the category
       const totalExpense = transactions.reduce((acc, curr) => acc + curr.amount, 0);
 
