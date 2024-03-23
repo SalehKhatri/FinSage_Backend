@@ -108,21 +108,73 @@ async function handleGetBalance(req, res) {
   }
 }
 
+// async function handleGetWeeklyExpense(req, res) {
+//   try {
+//     const sevenDaysAgo = moment().subtract(7, "days").toDate();
+
+//     const expenses = await Transaction.aggregate([
+//       {
+//         $match: {
+//           user: new ObjectId(req.user.id),
+//           type: "expense",
+//           date: { $gte: sevenDaysAgo },
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: { $dateToString: { format: "%m/%d", date: "$date" } },
+//           totalExpensePerDay: { $sum: "$amount" },
+//         },
+//       },
+//       {
+//         $sort: { '_id': 1 } // Sort by date in ascending order
+//       },
+//       {
+//         $group: {
+//           _id: null,
+//           expensesPerDay: {
+//             $push: { day: "$_id", totalExpense: "$totalExpensePerDay" },
+//           },
+//           totalExpense: { $sum: "$totalExpensePerDay" },
+//         },
+//       },
+//     ]);
+
+//     const result =
+//       expenses.length > 0
+//         ? expenses[0]
+//         : { expensesPerDay: [], totalExpense: 0 };
+
+//     res.json(result);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// }
 async function handleGetWeeklyExpense(req, res) {
   try {
-    const sevenDaysAgo = moment().subtract(7, "days").toDate();
+    const today = moment();
+    const sevenDaysAgo = today.clone().subtract(6, 'days'); // Start counting 7 days from yesterday
+
+    // Generate an array of dates for the past 7 days
+    const dates = [];
+    let currentDate = sevenDaysAgo.clone();
+    for (let i = 0; i < 7; i++) {
+      dates.push(currentDate.format('MM/DD'));
+      currentDate.add(1, 'day');
+    }
 
     const expenses = await Transaction.aggregate([
       {
         $match: {
           user: new ObjectId(req.user.id),
           type: "expense",
-          date: { $gte: sevenDaysAgo },
+          date: { $gte: sevenDaysAgo.toDate(), $lte: today.toDate() }, // Include today's date
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%m/%d", date: "$date" } },
+          _id: { $dateToString: { format: "%m/%d", date: "$date" } }, // Format date as MM/DD
           totalExpensePerDay: { $sum: "$amount" },
         },
       },
@@ -140,10 +192,17 @@ async function handleGetWeeklyExpense(req, res) {
       },
     ]);
 
+    // Merge expenses with dates, filling in missing dates with totalExpense 0
     const result =
       expenses.length > 0
-        ? expenses[0]
-        : { expensesPerDay: [], totalExpense: 0 };
+        ? {
+            expensesPerDay: dates.map(date => {
+              const expense = expenses[0].expensesPerDay.find(e => e.day === date);
+              return { day: date, totalExpense: expense ? expense.totalExpense : 0 };
+            }),
+            totalExpense: expenses[0].totalExpense,
+          }
+        : { expensesPerDay: dates.map(date => ({ day: date, totalExpense: 0 })), totalExpense: 0 };
 
     res.json(result);
   } catch (error) {
