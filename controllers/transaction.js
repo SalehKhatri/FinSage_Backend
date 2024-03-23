@@ -122,7 +122,7 @@ async function handleGetWeeklyExpense(req, res) {
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          _id: { $dateToString: { format: "%m/%d", date: "$date" } },
           totalExpensePerDay: { $sum: "$amount" },
         },
       },
