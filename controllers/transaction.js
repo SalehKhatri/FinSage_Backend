@@ -108,49 +108,6 @@ async function handleGetBalance(req, res) {
   }
 }
 
-// async function handleGetWeeklyExpense(req, res) {
-//   try {
-//     const sevenDaysAgo = moment().subtract(7, "days").toDate();
-
-//     const expenses = await Transaction.aggregate([
-//       {
-//         $match: {
-//           user: new ObjectId(req.user.id),
-//           type: "expense",
-//           date: { $gte: sevenDaysAgo },
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: { $dateToString: { format: "%m/%d", date: "$date" } },
-//           totalExpensePerDay: { $sum: "$amount" },
-//         },
-//       },
-//       {
-//         $sort: { '_id': 1 } // Sort by date in ascending order
-//       },
-//       {
-//         $group: {
-//           _id: null,
-//           expensesPerDay: {
-//             $push: { day: "$_id", totalExpense: "$totalExpensePerDay" },
-//           },
-//           totalExpense: { $sum: "$totalExpensePerDay" },
-//         },
-//       },
-//     ]);
-
-//     const result =
-//       expenses.length > 0
-//         ? expenses[0]
-//         : { expensesPerDay: [], totalExpense: 0 };
-
-//     res.json(result);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// }
 async function handleGetWeeklyExpense(req, res) {
   try {
     const today = moment();
