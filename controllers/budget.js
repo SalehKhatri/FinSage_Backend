@@ -27,28 +27,41 @@ async function handleGetBudget(req, res) {
 
     // Iterate over each budget
     for (const budget of budgets) {
-      const { category, amount, createdAt } = budget;
+      const { category, amount, createdAt, _id } = budget;
 
       // Find transactions for the same user and category after the budget creation date
-      const transactions = await Transaction.find({ user: userId, category, date: { $gte: createdAt } });
-      
+      const transactions = await Transaction.find({
+        user: userId,
+        category,
+        date: { $gte: createdAt },
+      });
+
       // Calculate total expenses for the category
-      const totalExpense = transactions.reduce((acc, curr) => acc + curr.amount, 0);
+      const totalExpense = transactions.reduce(
+        (acc, curr) => acc + curr.amount,
+        0
+      );
 
       // Calculate remaining budget for the category
       const remainingAmount = amount - totalExpense;
 
       // Push the category and remaining budget to the array
-      remainingBudgets.push({ category, remainingAmount, originalAmount: amount, createdAt });
+      remainingBudgets.push({
+        _id,
+        category,
+        remainingAmount,
+        originalAmount: amount,
+        createdAt,
+
+      });
     }
 
     res.json(remainingBudgets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: "Server Error" });
   }
 }
-
 
 async function handleDeleteBudget(req, res) {
   try {
