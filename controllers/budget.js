@@ -1,3 +1,4 @@
+const moment = require("moment");
 const Budget = require("../models/Budget");
 const Transaction = require("../models/Transaction");
 async function handleCreateBudget(req, res) {
@@ -33,7 +34,7 @@ async function handleGetBudget(req, res) {
       const transactions = await Transaction.find({
         user: userId,
         category,
-        date: { $gte: createdAt },
+        date: { $gte: moment(createdAt).startOf('day') }
       });
 
       // Calculate total expenses for the category
