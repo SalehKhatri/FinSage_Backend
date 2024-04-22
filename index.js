@@ -9,10 +9,10 @@ const app = express();
 const dbUrl = process.env.DB_URL;
 app.use(express.json());
 app.use(cors());
-const port = 8080;
+const port = process.env.PORT || 3000;;
 
 connectToDB(dbUrl);
-app.listen(port, () => console.log("App running on localhost:8080"));
+app.listen(port,"0.0.0.0", () => console.log(`App running on localhost:${port}`));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
